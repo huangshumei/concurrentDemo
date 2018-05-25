@@ -30,14 +30,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     /**
      * 测试结果1
      */
-    @Test public void testOneThread() {
-        for (int i = 0; i < 1000; i++) {
+    @Test public void testOneThread() throws InterruptedException{
+        int threadNum = 1000;
+        DemoApi.count = new CountDownLatch(threadNum);
+        for (int i = 0; i < threadNum; i++) {
             new Thread(() -> testOne()).start();
         }
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-        }
+        DemoApi.count.await();
         testOneResult();
     }
 
@@ -63,14 +62,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     /**
      * 测试结果2
      */
-    @Test public void testTwoThread() {
-        for (int i = 0; i < 1000; i++) {
+    @Test public void testTwoThread() throws InterruptedException{
+        int threadNum = 1000;
+        DemoApi.count = new CountDownLatch(threadNum);
+        for (int i = 0; i < threadNum; i++) {
             new Thread(() -> testTwo()).start();
         }
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-        }
+        DemoApi.count.await();
         testTwoResult();
     }
 
@@ -97,14 +95,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     /**
      * 测试结果3
      */
-    @Test public void testThreeThread() {
-        for (int i = 0; i < 1000; i++) {
+    @Test public void testThreeThread() throws InterruptedException{
+        int threadNum = 1000;
+        DemoApi.count = new CountDownLatch(threadNum);
+        for (int i = 0; i < threadNum; i++) {
             new Thread(() -> testThree()).start();
         }
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-        }
+        DemoApi.count.await();
         testThreeResult();
     }
 
@@ -132,7 +129,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
      * 测试结果4
      */
     @Test public void testFourThread() throws InterruptedException{
-        int threadNum = 100;
+        int threadNum = 500;
         DemoApi.count = new CountDownLatch(threadNum);
         for (int i = 0; i < threadNum; i++) {
             new Thread(() -> testFour()).start();
@@ -154,6 +151,38 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     private void testFourResult() {
         try {
             System.out.println(mockMvc.perform(MockMvcRequestBuilders.get("/testFourResult"))
+                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn().getResponse()
+                .getContentAsString());
+        } catch (Exception e) {
+            System.out.println("test filed");
+        }
+    }
+
+    /**
+     * 测试结果5
+     */
+    @Test public void testFiveThread() throws InterruptedException{
+        int threadNum = 1000;
+        DemoApi.count = new CountDownLatch(threadNum);
+        for (int i = 0; i < threadNum; i++) {
+            new Thread(() -> testFive()).start();
+        }
+        DemoApi.count.await();
+        testFiveResult();
+    }
+
+    private void testFive() {
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.get("/testFive")).andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk());
+        } catch (Exception e) {
+            System.out.println("test filed");
+        }
+    }
+
+    private void testFiveResult() {
+        try {
+            System.out.println(mockMvc.perform(MockMvcRequestBuilders.get("/testFiveResult"))
                 .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn().getResponse()
                 .getContentAsString());
         } catch (Exception e) {
