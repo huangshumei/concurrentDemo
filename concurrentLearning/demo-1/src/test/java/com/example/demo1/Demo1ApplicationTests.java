@@ -131,13 +131,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
      * 测试结果4
      */
     @Test public void testFourThread() throws InterruptedException{
-        int threadNum = 10000;
+        long timestamp = System.currentTimeMillis();
+        int threadNum = 1000;
         DemoApi.count = new CountDownLatch(threadNum);
         for (int i = 0; i < threadNum; i++) {
             new Thread(() -> testFour()).start();
         }
         DemoApi.count.await();
         testFourResult();
+        long endstamp = System.currentTimeMillis();
+        System.out.println("时间：" + (endstamp - timestamp)/1000 +"秒");
     }
 
 
@@ -164,13 +167,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
      * 测试结果5
      */
     @Test public void testFiveThread() throws InterruptedException{
-        int threadNum = 10000;
+        long timestamp = System.currentTimeMillis();
+        int threadNum = 1000;
         DemoApi.count = new CountDownLatch(threadNum);
         for (int i = 0; i < threadNum; i++) {
             new Thread(() -> testFive()).start();
         }
         DemoApi.count.await();
         testFiveResult();
+        long endstamp = System.currentTimeMillis();
+        System.out.println("时间：" + (endstamp - timestamp)/1000 +"秒");
     }
 
     private void testFive() {
@@ -197,19 +203,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
      * 测试结果6
      */
     @Test public void testSixThread() throws InterruptedException{
-        int threadNum = 10000;
+        long timestamp = System.currentTimeMillis();
+        int threadNum = 1000;
         DemoApi.count = new CountDownLatch(threadNum);
         for (int i = 0; i < threadNum; i++) {
             new Thread(() -> testSix()).start();
-           /* long timestamp = System.currentTimeMillis();
-            long endstamp = System.currentTimeMillis();
-            //减少绝对并发
-            while(endstamp - timestamp < 10){
-                endstamp = System.currentTimeMillis();
-            }*/
         }
         DemoApi.count.await();
         testSixResult();
+        long endstamp = System.currentTimeMillis();
+        System.out.println("时间：" + (endstamp - timestamp)/1000 +"秒");
     }
 
     private void testSix() {

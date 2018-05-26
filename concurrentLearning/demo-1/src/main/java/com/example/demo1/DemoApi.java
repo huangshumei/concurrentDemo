@@ -1,5 +1,7 @@
 package com.example.demo1;
 
+import com.example.demo1.db.TDemo;
+import com.example.demo1.db.TDemoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,6 +29,9 @@ public class DemoApi {
     @Autowired
     private RedisTemplate<String, ?> redisTemplate;
 
+
+    @Autowired
+    private TDemoRepository repository;
 
 
     /**
@@ -80,17 +85,9 @@ public class DemoApi {
      * 测试4-操作限时
      */
     @RequestMapping(value = "/testFour",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public synchronized void testFour(){
+    public void testFour(){
         try{
-            //模拟code递增自增长
-            num++;
-            volNum++;
-            long timestamp = System.currentTimeMillis();
-            long endstamp = System.currentTimeMillis();
-            //模拟数据库、文件操作时间
-            while(endstamp - timestamp < 100){
-                endstamp = System.currentTimeMillis();
-            }
+            repository.generatorBm();
         }catch (Exception e){
             e.printStackTrace();
             System.out.println("异常：" + e.getMessage());
@@ -101,7 +98,12 @@ public class DemoApi {
 
     @RequestMapping(value = "/testFourResult",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String testFourResult(){
-        return "同步方法测试---num计算结果：" + num  + "  volNum计算结果：" + volNum;
+        int value = 0;
+        TDemo demo = repository.findTDemoById("demo");
+        if(demo != null){
+            value = demo.getValue();
+        }
+        return "同步方法测试---num计算结果：" + value;
     }
 
     /**
