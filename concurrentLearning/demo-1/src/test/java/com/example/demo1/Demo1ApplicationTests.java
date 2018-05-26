@@ -12,6 +12,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.time.Instant;
+import java.time.temporal.ChronoField;
 import java.util.concurrent.CountDownLatch;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -129,7 +131,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
      * 测试结果4
      */
     @Test public void testFourThread() throws InterruptedException{
-        int threadNum = 500;
+        int threadNum = 10000;
         DemoApi.count = new CountDownLatch(threadNum);
         for (int i = 0; i < threadNum; i++) {
             new Thread(() -> testFour()).start();
@@ -183,6 +185,45 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     private void testFiveResult() {
         try {
             System.out.println(mockMvc.perform(MockMvcRequestBuilders.get("/testFiveResult"))
+                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn().getResponse()
+                .getContentAsString());
+        } catch (Exception e) {
+            System.out.println("test filed");
+        }
+    }
+
+
+    /**
+     * 测试结果6
+     */
+    @Test public void testSixThread() throws InterruptedException{
+        int threadNum = 10000;
+        DemoApi.count = new CountDownLatch(threadNum);
+        for (int i = 0; i < threadNum; i++) {
+            new Thread(() -> testSix()).start();
+            long timestamp = System.currentTimeMillis();
+            long endstamp = System.currentTimeMillis();
+            //减少绝对并发
+            while(endstamp - timestamp < 10){
+                endstamp = System.currentTimeMillis();
+            }
+        }
+        DemoApi.count.await();
+        testSixResult();
+    }
+
+    private void testSix() {
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.get("/testSix")).andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk());
+        } catch (Exception e) {
+            System.out.println("test filed");
+        }
+    }
+
+    private void testSixResult() {
+        try {
+            System.out.println(mockMvc.perform(MockMvcRequestBuilders.get("/testSixResult"))
                 .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn().getResponse()
                 .getContentAsString());
         } catch (Exception e) {

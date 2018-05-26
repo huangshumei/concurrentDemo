@@ -1,14 +1,16 @@
 package com.example.demo1;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.temporal.ChronoField;
-import java.util.Date;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
@@ -21,6 +23,11 @@ public class DemoApi {
     public static CountDownLatch count;
 
     public static AtomicInteger atomic = new AtomicInteger(0);
+
+    @Autowired
+    private RedisTemplate<String, ?> redisTemplate;
+
+
 
     /**
      * 测试1
@@ -74,15 +81,15 @@ public class DemoApi {
      */
     @RequestMapping(value = "/testFour",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public synchronized void testFour(){
-        long timestamp = Instant.now().getLong(ChronoField.MILLI_OF_SECOND);
         try{
             //模拟code递增自增长
             num++;
             volNum++;
-            long endstamp = Instant.now().getLong(ChronoField.MILLI_OF_SECOND);
+            long timestamp = System.currentTimeMillis();
+            long endstamp = System.currentTimeMillis();
             //模拟数据库、文件操作时间
-            while(endstamp - timestamp < 1){
-                endstamp = Instant.now().getLong(ChronoField.MILLI_OF_SECOND);
+            while(endstamp - timestamp < 100){
+                endstamp = System.currentTimeMillis();
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -102,14 +109,14 @@ public class DemoApi {
      */
     @RequestMapping(value = "/testFive",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void testFive(){
-        long timestamp = Instant.now().getLong(ChronoField.MILLI_OF_SECOND);
+        long timestamp = System.currentTimeMillis();
         try{
             //模拟code递增自增长
             atomic.addAndGet(1);
-            long endstamp = Instant.now().getLong(ChronoField.MILLI_OF_SECOND);
+            long endstamp = System.currentTimeMillis();
             //模拟数据库、文件操作时间
-            while(endstamp - timestamp < 1){
-                endstamp = Instant.now().getLong(ChronoField.MILLI_OF_SECOND);
+            while(endstamp - timestamp < 10){
+                endstamp = System.currentTimeMillis();
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -123,5 +130,36 @@ public class DemoApi {
     @RequestMapping(value = "/testFiveResult",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String testFiveResult(){
         return "AtomicInteger---atomic计算结果：" + atomic;
+    }
+
+
+    /**
+     * 测试6
+     */
+    @RequestMapping(value = "/testSix",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public int testSix(){
+        int redisNum = 0;
+        try{
+            //模拟code递增自增长
+            RedisAtomicInteger redisAtomicInteger = new RedisAtomicInteger("demo_key", redisTemplate.getConnectionFactory());
+            redisNum = redisAtomicInteger.incrementAndGet();
+            redisAtomicInteger.expire(Integer.MAX_VALUE, TimeUnit.DAYS);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("异常：" + e.getMessage());
+        }finally {
+            count.countDown();
+        }
+        return redisNum;
+    }
+
+    @RequestMapping(value = "/testSixResult",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public String testSixResult(){
+        String result = redisTemplate.execute((RedisCallback<String>)(connection) -> {
+            RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
+            byte[] value =  connection.get(serializer.serialize("demo_key"));
+            return serializer.deserialize(value);
+        });
+        return "redis---num计算结果：" + result;
     }
 }
