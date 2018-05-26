@@ -30,7 +30,7 @@ public class DemoApi {
 
 
     /**
-     * 测试1
+     * 测试1--非线程安全
      */
     @RequestMapping(value = "/testOne",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void testOne(){
@@ -45,7 +45,7 @@ public class DemoApi {
 
 
     /**
-     * 测试2
+     * 测试2--volatile关键字
      */
     @RequestMapping(value = "/testTwo",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void testTwo(){
@@ -61,7 +61,7 @@ public class DemoApi {
 
 
     /**
-     * 测试3
+     * 测试3-线程同步
      */
     @RequestMapping(value = "/testThree",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public synchronized void testThree(){
@@ -77,7 +77,7 @@ public class DemoApi {
 
 
     /**
-     * 测试4
+     * 测试4-操作限时
      */
     @RequestMapping(value = "/testFour",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public synchronized void testFour(){
@@ -105,19 +105,13 @@ public class DemoApi {
     }
 
     /**
-     * 测试5
+     * 测试5-Atomic方法
      */
     @RequestMapping(value = "/testFive",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void testFive(){
-        long timestamp = System.currentTimeMillis();
         try{
             //模拟code递增自增长
             atomic.addAndGet(1);
-            long endstamp = System.currentTimeMillis();
-            //模拟数据库、文件操作时间
-            while(endstamp - timestamp < 10){
-                endstamp = System.currentTimeMillis();
-            }
         }catch (Exception e){
             e.printStackTrace();
             System.out.println("异常：" + e.getMessage());
@@ -134,7 +128,7 @@ public class DemoApi {
 
 
     /**
-     * 测试6
+     * 测试6-redis
      */
     @RequestMapping(value = "/testSix",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public int testSix(){
