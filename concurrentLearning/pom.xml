@@ -12,6 +12,7 @@
     <description>Demo project for Spring Boot</description>
     <modules>
         <module>demo-1</module>
+        <module>javaconcurrent</module>
     </modules>
 
     <parent>
